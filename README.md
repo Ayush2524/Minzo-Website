@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Minzo AI — complete website with sign-in
 
-## Getting Started
+This is the full deployable project: the redesigned marketing website, artwork, Google/email/phone sign-in, protected learning journey and sign-out. Extract the ZIP before deploying. It is a Next.js project, not a single static HTML file.
 
-First, run the development server:
+**Start with [SETUP.md](SETUP.md)** to connect your existing Supabase project. Without the required settings, the page honestly shows “Sign-in is not ready yet” and the journey remains locked.
 
-```bash
+## Deploy this complete version
+
+1. Extract the ZIP and use the `Minzo-AI-Complete` folder as the project root. It must contain `package.json`, `next.config.mjs`, `app`, `server`, `private` and `public`.
+2. Put that source in your Vercel project's connected repository, or deploy the folder with Vercel CLI linked to the existing project. Keep the existing project to retain `minzo-website.vercel.app` and connected domains.
+3. Set Framework Preset to **Next.js**, Node.js to **24.x**, and leave Output Directory at the Next.js default. Build Command is `npm run build` (or `pnpm run build` when using the included lockfile). Do not use the old static `dist` or `public` output override.
+4. Add the environment variables and provider settings from `SETUP.md`.
+5. Deploy, then complete the real sign-in checks listed in that guide.
+
+Vercel publishes source changes as a new deployment in the same project. You do not need a new site, domain or hosting account. Clicking Redeploy on an old deployment without changing its source will not add these files. [Vercel deployments](https://vercel.com/docs/deployments)
+
+## Local commands
+
+Node 24 is used for the supplied build and tests. [Vercel Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
+
+```sh
+npm install
+npm test
+npm run build
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or use `pnpm install --frozen-lockfile`, `pnpm test`, `pnpm build`, `pnpm dev` with the included pnpm lockfile. Choose one package manager and commit its resulting lockfile. For local real sign-in, create `.env.local` from `.env.example`, set `APP_URL=http://localhost:3000` and add the local callback to Supabase's redirect list. The `/signin` layout can be previewed without credentials, but sign-in cannot complete.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Project map
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Location | Purpose |
+| --- | --- |
+| `public/index.html`, `public/style.css`, `public/app.js` | Complete marketing website |
+| `public/signin.html`, `public/auth/` | Sign-in screens, CTA gate and session client |
+| `private/journey/` | Protected learning interface and content |
+| `public/journey/assets/` | Original Minzo artwork and font |
+| `server/minzo/` | Supabase authentication and journey access checks |
+| `app/api/` | Next.js server route adapters |
+| `minzo-auth.config.mjs` | Routes protected journey URLs before static file matching |
+| `supabase/website-signins.sql` | Optional website acquisition tracking |
+| `tests/auth.test.mjs` | Authentication and access-control checks |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The existing redesign and story flow are retained. No additional motion-design work was added. See `TEST-REPORT.md` for validation and live-service limitations.

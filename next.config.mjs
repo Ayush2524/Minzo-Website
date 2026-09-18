@@ -1,6 +1,2 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+import {withMinzoAuth} from './minzo-auth.config.mjs';
+export default withMinzoAuth({});
