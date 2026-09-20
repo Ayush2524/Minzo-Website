@@ -2,7 +2,6 @@
 const feedback = document.querySelector('#sample-feedback');
 let sampleAnswer = null;
 async function chooseSample(answer) {
-  if (!(await window.MinzoAuth.requireUser('/#try-it'))) return {requiresSignIn:true};
   if (!['a', 'b'].includes(answer)) throw new Error('Choose a or b.');
   sampleAnswer = answer;
   document.querySelectorAll('[data-answer]').forEach(button => {

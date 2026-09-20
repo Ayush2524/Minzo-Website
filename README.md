@@ -1,6 +1,6 @@
 # Minzo AI — complete website with sign-in
 
-This is the full deployable project: the redesigned marketing website, artwork, Google/email/phone sign-in, protected learning journey and sign-out. Extract the ZIP before deploying. It is a Next.js project, not a single static HTML file.
+This is the full deployable project: the redesigned marketing website, artwork, Google/GitHub sign-in, protected learning journey and sign-out. Extract the ZIP before deploying. It is a Next.js project, not a single static HTML file.
 
 **Start with [SETUP.md](SETUP.md)** to connect your existing Supabase project. Without the required settings, the page honestly shows “Sign-in is not ready yet” and the journey remains locked.
 

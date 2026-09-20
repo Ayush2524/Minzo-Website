@@ -50,44 +50,19 @@ test('cross-origin and invalid CSRF mutations never call Supabase',async()=>{
   }
 });
 test('wrong methods and malformed bodies are rejected',async()=>{
-  assert.equal((await auth('send-code',{extra:{method:'GET'}})).statusCode,405);
-  assert.equal((await auth('send-code',{body:'{broken'})).statusCode,400);
-  assert.equal((await auth('send-code',{body:'x'.repeat(4097)})).statusCode,413);
-  assert.equal((await auth('send-code',{body:{method:'phone',phone:'9876543210'}})).statusCode,400);
-  assert.equal((await auth('send-code',{body:{method:'email',email:'not-email'}})).statusCode,400);
+  assert.equal((await auth('google',{extra:{method:'GET'}})).statusCode,405);
+  assert.equal((await auth('google',{body:'{broken'})).statusCode,400);
+  assert.equal((await auth('google',{body:'x'.repeat(4097)})).statusCode,413);
+  assert.equal((await auth('send-code',{})).statusCode,404);
+  assert.equal((await auth('verify-code',{})).statusCode,404);
 });
-test('email sends a passwordless signup/login request with normalized address',async()=>{
-  let sent;const r=await auth('send-code',{body:{method:'email',email:' Learner@Minzo.Test '},client:client({signInWithOtp:async args=>{sent=args;return {};}})});
-  assert.equal(r.data().sent,true);assert.equal(sent.email,'learner@minzo.test');assert.equal(sent.options.shouldCreateUser,true);
-});
-test('phone uses SMS, E.164, and a profile-compatible non-PII username',async()=>{
-  let sent;const r=await auth('send-code',{body:{method:'phone',phone:'+91 (98765) 43210'},client:client({signInWithOtp:async args=>{sent=args;return {};}})});
-  assert.equal(r.statusCode,200);assert.equal(sent.channel,'sms');assert.equal(sent.phone,'+919876543210');assert.match(sent.options.data.username,/^minzo_[a-f0-9]{12}$/);
-});
-test('enabled captcha is required and passed to Supabase',async()=>{
-  const config={...env,TURNSTILE_SITE_KEY:'test-site-key'};const body={method:'email',email:user.email};
-  assert.equal((await auth('send-code',{config,body})).data().code,'captcha_required');
-  let sent;assert.equal((await auth('send-code',{config,body:{...body,captchaToken:'test-token'},client:client({signInWithOtp:async args=>{sent=args;return {};}})})).statusCode,200);assert.equal(sent.options.captchaToken,'test-token');
-});
-test('delivery failures and rate limits never pretend a message was sent',async()=>{
-  for(const status of [429,503]) {const r=await auth('send-code',{body:{method:'email',email:user.email},client:client({signInWithOtp:async()=>({error:{status}})})});assert.equal(r.statusCode,status);assert.equal(r.data().sent,undefined);if(status===429)assert.equal(r.headers['retry-after'],'60');}
-});
-test('invalid codes and missing sessions cannot complete sign-in',async()=>{
-  const body={method:'email',email:user.email,code:'123456'};
-  assert.equal((await auth('verify-code',{body:{...body,code:'12'}})).statusCode,400);
-  assert.equal((await auth('verify-code',{body,client:client({verifyOtp:async()=>({error:{status:403,code:'otp_expired'}})})})).data().code,'invalid_code');
-  assert.equal((await auth('verify-code',{body,client:client({verifyOtp:async()=>({data:{session:null}})})})).statusCode,401);
-});
-test('verified email and phone codes return only a safe destination',async()=>{
-  for(const contact of [{method:'email',email:user.email},{method:'phone',phone:'+919876543210'}]) {
-    let sent;const r=await auth('verify-code',{body:{...contact,code:'123456',next:'https://attacker.test'},client:client({verifyOtp:async args=>{sent=args;return {data:{session:{access_token:'secret'}}};}})});
-    assert.equal(r.statusCode,200);assert.equal(sent.type,contact.method==='phone'?'sms':'email');assert.deepEqual(r.data(),{next:'/journey/'});
+test('Google and GitHub use this site callback and reject an unexpected provider URL',async()=>{
+  for(const provider of ['google','github']) {
+    let sent;const r=await auth(provider,{body:{next:'/#try-it'},client:client({signInWithOAuth:async args=>{sent=args;return {data:{url:env.SUPABASE_URL+'/auth/v1/authorize'}};}})});
+    assert.equal(r.statusCode,200);assert.equal(sent.provider,provider);assert.equal(sent.options.redirectTo,env.APP_URL+'/auth/minzo-callback');assert.match(r.headers['set-cookie'][0],/HttpOnly/);
+    assert.equal((await auth(provider,{client:client({signInWithOAuth:async()=>({data:{url:'https://attacker.test'}})})})).statusCode,503);
+    assert.equal((await auth(provider,{client:client({signInWithOAuth:async()=>({error:{status:503}})})})).data().code,`${provider}_unavailable`);
   }
-});
-test('Google uses this site callback and rejects an unexpected provider URL',async()=>{
-  let sent;const r=await auth('google',{body:{next:'/#try-it'},client:client({signInWithOAuth:async args=>{sent=args;return {data:{url:env.SUPABASE_URL+'/auth/v1/authorize'}};}})});
-  assert.equal(r.statusCode,200);assert.equal(sent.options.redirectTo,env.APP_URL+'/auth/minzo-callback');assert.match(r.headers['set-cookie'][0],/HttpOnly/);
-  assert.equal((await auth('google',{client:client({signInWithOAuth:async()=>({data:{url:'https://attacker.test'}})})})).statusCode,503);
 });
 test('real SSR OAuth implementation sets a secure PKCE verifier cookie',async()=>{
   const req=request('google');const res=response();const sdk=createSupabase(req,res,env);
@@ -98,7 +73,7 @@ test('real SSR OAuth implementation sets a secure PKCE verifier cookie',async()=
 test('OAuth callback verifies user and cannot redirect outside Minzo',async()=>{
   const extra={url:'/auth/minzo-callback?code=valid',headers:{cookie:'minzo-next=https%3A%2F%2Fattacker.test'}};
   const r=await auth('callback',{extra});assert.equal(r.statusCode,303);assert.equal(r.headers.location,'/journey/');
-  assert.equal((await auth('callback',{extra,client:client({exchangeCodeForSession:async()=>({error:{status:400}})})})).headers.location,'/signin?error=google');
+  assert.equal((await auth('callback',{extra,client:client({exchangeCodeForSession:async()=>({error:{status:400}})})})).headers.location,'/signin?error=oauth');
 });
 test('sign out clears all session cookie chunks; upstream errors remain errors',async()=>{
   const extra={headers:{...request('signout').headers,cookie:'minzo-csrf='+token+'; sb-project-auth-token.0=old; sb-project-auth-token.1=old'}};
@@ -106,7 +81,9 @@ test('sign out clears all session cookie chunks; upstream errors remain errors',
   assert.equal((await auth('signout',{client:client({signOut:async()=>({error:{status:503}})})})).statusCode,503);
 });
 test('optional acquisition failures do not block verified users',async()=>{
-  const c=client();c.rpc=async()=>({error:{code:'TEST_UNAVAILABLE'}});const r=await auth('verify-code',{config:{...env,RECORD_WEBSITE_SIGNINS:'true'},body:{method:'email',email:user.email,code:'123456'},client:c});assert.equal(r.statusCode,200);
+  const c=client();c.rpc=async()=>({error:{code:'TEST_UNAVAILABLE'}});
+  const extra={url:'/auth/minzo-callback?code=valid',headers:{}};
+  const r=await auth('callback',{config:{...env,RECORD_WEBSITE_SIGNINS:'true'},extra,client:c});assert.equal(r.statusCode,303);
 });
 async function journey(file,authenticated=true,method='GET') {
   const res=response();await createJourneyHandler({env,getClient:()=>client({getUser:async()=>({data:{user:authenticated?user:null}})})})({url:'/api/minzo-journey?file='+encodeURIComponent(file),method,headers:{}},res);return res;

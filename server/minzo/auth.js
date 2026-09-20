@@ -25,7 +25,7 @@ export function settings(env = process.env) {
     try { if (JSON.parse(Buffer.from(key.split('.')[1], 'base64url')).role === 'service_role') throw new Error(); }
     catch { throw new HttpError(503, 'Sign-in configuration needs attention.', 'wrong_key_type'); }
   }
-  return { origin, supabaseUrl, key, secure: origin.startsWith('https:'), turnstile: env.TURNSTILE_SITE_KEY || '' };
+  return { origin, supabaseUrl, key, secure: origin.startsWith('https:') };
 }
 export function noStore(res) {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
@@ -91,19 +91,6 @@ export async function readBody(req) {
   if (!body || Array.isArray(body) || typeof body !== 'object' || Buffer.byteLength(JSON.stringify(body)) > 4096) throw new HttpError(400, 'Please check your details and try again.');
   return body;
 }
-export function contactFrom(body) {
-  if (body.method === 'email') {
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, 'Enter a valid email address.', 'invalid_email');
-    return { email };
-  }
-  if (body.method === 'phone') {
-    const phone = typeof body.phone === 'string' ? body.phone.trim().replace(/[\s()-]/g, '') : '';
-    if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new HttpError(400, 'Include your country code, for example +91 98765 43210.', 'invalid_phone');
-    return { phone };
-  }
-  throw new HttpError(400, 'Choose email or phone to continue.', 'invalid_method');
-}
 export async function verifiedUser(client) {
   // getUser validates the token with Supabase; cookie contents alone never grant access.
   const { data, error } = await client.auth.getUser();
@@ -117,12 +104,6 @@ export async function verifiedUser(client) {
 }
 export function publicUser(user) {
   return { id: user.id, email: user.email || null, phone: user.phone || null, name: user.user_metadata?.full_name || user.user_metadata?.name || null };
-}
-export function providerError(error, verifying = false) {
-  if (error.status === 429 || /rate_limit|over_.*limit/.test(error.code || '')) return new HttpError(429, 'Please wait a minute before trying again.', 'rate_limited');
-  if (/captcha/.test(error.code || '')) return new HttpError(400, 'Please complete the security check and try again.', 'captcha_failed');
-  if (verifying && error.status < 500) return new HttpError(400, 'That code is invalid or has expired. Check it or request a new one.', 'invalid_code');
-  return new HttpError(503, 'We couldn’t send a code right now. Please try again or choose another sign-in option.', 'provider_unavailable');
 }
 export async function recordSignin(client, env) {
   if (env.RECORD_WEBSITE_SIGNINS !== 'true') return;
