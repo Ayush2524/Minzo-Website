@@ -39,7 +39,7 @@
   setInterval(() => {if(!document.hidden && window.MinzoUser) resume();},300000);
   (async () => {
     try {
-      const user = await check(); if(!user) return;
+      const user = await check(); if(!user || leaving) return;
       window.MinzoUser = user;
       const script = document.createElement('script'); script.src='/journey/app.js';
       script.onerror=() => failure('The learning path couldn’t load. Please try again.');

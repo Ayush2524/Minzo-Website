@@ -23,12 +23,23 @@ export function withMinzoAuth(config = {}) {
       return {beforeFiles:[...rules,...(existing.beforeFiles || [])],afterFiles:Array.isArray(existing)?existing:(existing.afterFiles || []),fallback:existing.fallback || []};
     },
     async headers() {
+      // Every page here is same-origin only: no external scripts, styles, fonts or XHR targets.
+      const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
       return [
         ...(oldHeaders ? await oldHeaders() : []),
         {source:'/signin(.*)',headers:[{key:'Cache-Control',value:'no-store'}]},
         {source:'/api/minzo-auth',headers:[{key:'Cache-Control',value:'no-store'}]},
         {source:'/api/minzo-journey',headers:[{key:'Cache-Control',value:'no-store'}]},
-        {source:'/(.*)',headers:[{key:'X-Content-Type-Options',value:'nosniff'},{key:'Referrer-Policy',value:'strict-origin-when-cross-origin'}]}
+        {source:'/(.*)',headers:[
+          {key:'X-Content-Type-Options',value:'nosniff'},
+          {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'},
+          {key:'X-Frame-Options',value:'DENY'},
+          {key:'Content-Security-Policy',value:csp}
+        ]},
+        {source:'/style.css',headers:[{key:'Cache-Control',value:'public, max-age=300, stale-while-revalidate=86400'}]},
+        {source:'/app.js',headers:[{key:'Cache-Control',value:'public, max-age=300, stale-while-revalidate=86400'}]},
+        {source:'/auth/(.*)',headers:[{key:'Cache-Control',value:'public, max-age=300, stale-while-revalidate=86400'}]},
+        {source:'/journey/assets/(.*)',headers:[{key:'Cache-Control',value:'public, max-age=86400, stale-while-revalidate=604800'}]}
       ];
     }
   };

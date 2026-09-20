@@ -1,6 +1,8 @@
 'use strict';
 const $ = selector => document.querySelector(selector);
-const next = new URLSearchParams(location.search).get('next') === '/#try-it' ? '/#try-it' : '/journey/';
+const params = new URLSearchParams(location.search);
+const next = params.get('next') === '/#try-it' ? '/#try-it' : '/journey/';
+const oauthFailed = params.has('error');
 let busy = false;
 function showMessage(text, success = false) {$('#auth-message').textContent=text;$('#auth-message').hidden=!text;$('#auth-message').classList.toggle('success',success);}
 function setBusy(value) {busy=value;document.querySelectorAll('.auth-option').forEach(b=>b.disabled=value);}
@@ -8,20 +10,23 @@ async function run(action) {if(busy)return;setBusy(true);showMessage('');try{awa
 function signIn(provider) {return run(async()=>{const result=await window.MinzoAuth.post(provider,{next});location.assign(result.url);});}
 $('#google-button').onclick=()=>signIn('google');
 $('#github-button').onclick=()=>signIn('github');
+function reveal(message, showChoices) {
+  $('#loading-view').hidden = true;
+  if (message) showMessage(message);
+  if (showChoices) { if (oauthFailed && !message) showMessage('Sign-in didn’t finish. Please try again.'); $('#choices-view').hidden = false; }
+}
 async function init() {
-  // Check the session before ever showing the sign-in options, so an
-  // already-signed-in visitor never sees this form flash before the redirect.
-  try {
-    const user = await window.MinzoAuth.session();
-    if (user) { location.replace(next); return; }
-  } catch (e) {
-    if (e.code !== 'auth_not_configured') { showMessage(e.message); $('#choices-view').hidden = false; return; }
-  }
-  try {
-    const config = await window.MinzoAuth.config();
-    if (!config.configured) { showMessage(config.message); return; }
-    if (new URLSearchParams(location.search).has('error')) showMessage('Sign-in didn’t finish. Please try again.');
-    $('#choices-view').hidden = false;
-  } catch (e) { showMessage(e.message); }
+  // Fire both checks in parallel; only the session result decides whether we ever show the form,
+  // so an already-signed-in visitor never sees it flash before the redirect.
+  const sessionPromise = window.MinzoAuth.session().catch(error => ({ error }));
+  const configPromise = window.MinzoAuth.config().catch(error => ({ error }));
+  const sessionResult = await sessionPromise;
+  if (sessionResult && !sessionResult.error) { location.replace(next); return; }
+  // A genuine session-check failure (not just "not configured yet") still lets the visitor try to sign in.
+  if (sessionResult && sessionResult.error && sessionResult.error.code !== 'auth_not_configured') return reveal(sessionResult.error.message, true);
+  const config = await configPromise;
+  if (config.error) return reveal(config.error.message, false);
+  if (!config.configured) return reveal(config.message, false);
+  reveal(null, true);
 }
 init();

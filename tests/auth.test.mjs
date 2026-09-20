@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createAuthHandler } from '../server/minzo/auth-handler.js';
 import { createJourneyHandler } from '../server/minzo/journey-handler.js';
 import { asNextRoute } from '../server/minzo/next-adapter.js';
-import { settings, createSupabase, setCookie } from '../server/minzo/auth.js';
+import { settings, createSupabase, setCookie, __resetVerifiedUserCacheForTests, __resetRateLimitForTests } from '../server/minzo/auth.js';
 import { withMinzoAuth } from '../minzo-auth.config.mjs';
 
 const env = {APP_URL:'https://minzo-website.vercel.app',SUPABASE_URL:'https://test-project.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test_only',NODE_ENV:'production'};
@@ -18,6 +18,9 @@ function request(action,body={},extra={}) {
   return {url:'/api/minzo-auth?action='+action,method:['config','session','callback'].includes(action)?'GET':'POST',headers:{origin:env.APP_URL,'content-type':'application/json',cookie:'minzo-csrf='+token,'x-minzo-csrf':token},body,...extra};
 }
 async function auth(action,{body={},client:provided=client(),config=env,extra={}}={}) {
+  // Each call gets a clean verified-user cache: tests reuse the same fake cookie with different
+  // mocked outcomes, and the short-lived production cache would otherwise leak between them.
+  __resetVerifiedUserCacheForTests();
   const res=response();await createAuthHandler({env:config,getClient:()=>provided})(request(action,body,extra),res);return res;
 }
 test('missing setup fails closed and exposes no credentials',async()=>{
@@ -80,12 +83,33 @@ test('sign out clears all session cookie chunks; upstream errors remain errors',
   const r=await auth('signout',{extra});assert.equal(r.data().signedOut,true);assert.equal(r.headers['set-cookie'].length,2);assert.ok(r.headers['set-cookie'].every(c=>/Max-Age=0/.test(c)));
   assert.equal((await auth('signout',{client:client({signOut:async()=>({error:{status:503}})})})).statusCode,503);
 });
+test('verified-user cache collapses repeated checks for the same cookie, briefly',async()=>{
+  __resetVerifiedUserCacheForTests();
+  let calls=0;
+  const c=client({getUser:async()=>{calls++;return {data:{user}};}});
+  const handler=createAuthHandler({env,getClient:()=>c});
+  const req=request('session');
+  const r1=response();await handler(req,r1);
+  const r2=response();await handler(req,r2);
+  assert.equal(calls,1);
+  assert.equal(r1.data().user.id,user.id);assert.equal(r2.data().user.id,user.id);
+});
+test('OAuth initiation is rate limited per IP after repeated attempts',async()=>{
+  __resetRateLimitForTests();
+  const headers={...request('google').headers,'x-forwarded-for':'203.0.113.9'};
+  let last;
+  for (let i=0;i<11;i++) last=await auth('google',{extra:{headers}});
+  assert.equal(last.statusCode,429);
+  assert.equal(last.headers['retry-after'],'60');
+  assert.equal(last.data().code,'rate_limited');
+});
 test('optional acquisition failures do not block verified users',async()=>{
   const c=client();c.rpc=async()=>({error:{code:'TEST_UNAVAILABLE'}});
   const extra={url:'/auth/minzo-callback?code=valid',headers:{}};
   const r=await auth('callback',{config:{...env,RECORD_WEBSITE_SIGNINS:'true'},extra,client:c});assert.equal(r.statusCode,303);
 });
 async function journey(file,authenticated=true,method='GET') {
+  __resetVerifiedUserCacheForTests();
   const res=response();await createJourneyHandler({env,getClient:()=>client({getUser:async()=>({data:{user:authenticated?user:null}})})})({url:'/api/minzo-journey?file='+encodeURIComponent(file),method,headers:{}},res);return res;
 }
 test('direct journey HTML, script and content URLs are protected',async()=>{
@@ -101,5 +125,12 @@ test('Next adapter preserves separate cookies and rejects oversized streams',asy
 });
 test('Next wrapper protects files before public matching and preserves project rules',async()=>{
   const config=withMinzoAuth({rewrites:async()=>[{source:'/old',destination:'/new'}],headers:async()=>[{source:'/other',headers:[{key:'x-test',value:'preserved'}]}]});
-  const rules=await config.rewrites();assert.ok(rules.beforeFiles.some(x=>x.source==='/journey/content.json'));assert.equal(rules.afterFiles[0].source,'/old');assert.equal((await config.headers())[0].source,'/other');assert.throws(()=>withMinzoAuth({output:'export'}));
+  const rules=await config.rewrites();assert.ok(rules.beforeFiles.some(x=>x.source==='/journey/content.json'));assert.equal(rules.afterFiles[0].source,'/old');
+  const headerRules=await config.headers();
+  assert.equal(headerRules[0].source,'/other');
+  const catchAll=headerRules.find(r=>r.source==='/(.*)');
+  assert.ok(catchAll.headers.some(h=>h.key==='X-Frame-Options'&&h.value==='DENY'));
+  assert.ok(catchAll.headers.some(h=>h.key==='Content-Security-Policy'&&/default-src 'self'/.test(h.value)&&/frame-ancestors 'none'/.test(h.value)));
+  assert.ok(headerRules.some(r=>r.source==='/auth/(.*)'&&r.headers.some(h=>h.key==='Cache-Control'&&/max-age/.test(h.value))));
+  assert.throws(()=>withMinzoAuth({output:'export'}));
 });

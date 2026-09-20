@@ -1,5 +1,10 @@
 # Validation — 18 September 2026
 
+> **Superseded.** This snapshot predates the move to Google/GitHub-only sign-in (email, phone and
+> Cloudflare Turnstile were removed afterward). Anything below referring to email/SMS codes, OTP or
+> CAPTCHA describes the auth system as it existed on this date, not the current one. Current
+> coverage lives in `tests/auth.test.mjs` (`pnpm test`).
+
 ## Passed
 
 - 24 automated authentication and route tests using Node's test runner. These cover configuration failure, rejecting admin keys, verified/anonymous/unconfirmed users, CSRF and origin checks, input/body validation, email and phone request parameters, CAPTCHA forwarding, rate limits, OTP verification, redirect restrictions, cookie handling, sign-out, private-file access, Next adapter behavior and config merging.

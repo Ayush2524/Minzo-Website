@@ -91,20 +91,55 @@ export async function readBody(req) {
   if (!body || Array.isArray(body) || typeof body !== 'object' || Buffer.byteLength(JSON.stringify(body)) > 4096) throw new HttpError(400, 'Please check your details and try again.');
   return body;
 }
-export async function verifiedUser(client) {
+// A single page view (journey HTML, CSS, script and content, plus its own session check) can
+// fire several requests within milliseconds of each other. Collapse those into one real Supabase
+// call per warm instance with a short-lived cache keyed by the request's raw cookie header.
+const verifiedUserCache = new Map();
+const VERIFIED_USER_CACHE_MS = 5000;
+const VERIFIED_USER_CACHE_MAX = 1000;
+export async function verifiedUser(client, cacheKey) {
+  if (cacheKey) {
+    const cached = verifiedUserCache.get(cacheKey);
+    if (cached && cached.expires > Date.now()) return cached.user;
+  }
   // getUser validates the token with Supabase; cookie contents alone never grant access.
   const { data, error } = await client.auth.getUser();
   if (error) {
     if (error.status >= 500 || error.name === 'AuthRetryableFetchError') throw new HttpError(503, 'We couldn’t check your session. Please try again.', 'auth_unavailable');
     return null;
   }
-  const user = data?.user;
-  if (!user || user.is_anonymous || (!user.email_confirmed_at && !user.phone_confirmed_at)) return null;
+  const found = data?.user;
+  const user = (!found || found.is_anonymous || (!found.email_confirmed_at && !found.phone_confirmed_at)) ? null : found;
+  if (cacheKey) {
+    if (verifiedUserCache.size >= VERIFIED_USER_CACHE_MAX) verifiedUserCache.clear();
+    verifiedUserCache.set(cacheKey, { user, expires: Date.now() + VERIFIED_USER_CACHE_MS });
+  }
   return user;
 }
+// Test-only: the cache above is module-level and would otherwise leak verified-user results
+// between test cases that reuse the same fake cookie string with different mocked outcomes.
+export function __resetVerifiedUserCacheForTests() { verifiedUserCache.clear(); }
 export function publicUser(user) {
   return { id: user.id, email: user.email || null, phone: user.phone || null, name: user.user_metadata?.full_name || user.user_metadata?.name || null };
 }
+// Best-effort per-instance throttle for actions that cost a real call to an external provider.
+// This is not a global limit across serverless instances; pair it with an edge/WAF-level limiter
+// (e.g. Vercel Firewall or Upstash) for a hard guarantee under distributed abuse.
+const rateBuckets = new Map();
+const RATE_BUCKETS_MAX = 5000;
+export function rateLimit(key, max, windowMs) {
+  const now = Date.now();
+  let bucket = rateBuckets.get(key);
+  if (!bucket || bucket.resetAt <= now) { bucket = { count: 0, resetAt: now + windowMs }; rateBuckets.set(key, bucket); }
+  bucket.count += 1;
+  if (rateBuckets.size > RATE_BUCKETS_MAX) rateBuckets.clear();
+  if (bucket.count > max) throw new HttpError(429, 'Too many attempts. Please wait a minute and try again.', 'rate_limited');
+}
+export function clientIp(req) {
+  return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
+}
+// Test-only: see __resetVerifiedUserCacheForTests above — same reasoning, different cache.
+export function __resetRateLimitForTests() { rateBuckets.clear(); }
 export async function recordSignin(client, env) {
   if (env.RECORD_WEBSITE_SIGNINS !== 'true') return;
   // Optional acquisition tracking must never prevent a valid user from signing in.

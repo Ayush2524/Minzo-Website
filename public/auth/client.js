@@ -14,13 +14,18 @@
     if (!r.ok) { const error = new Error(data.error || 'We couldn’t check your sign-in.'); error.code = data.code; throw error; }
     return data.user;
   }
-  async function post(action,body) {
+  async function post(action,body,retry=true) {
     const settings = await config();
     if (!settings.configured) throw new Error(settings.message || 'Sign-in is not ready yet. Please try again later.');
     const r = await fetch(`/api/minzo-auth?action=${action}`,{method:'POST',cache:'no-store',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Minzo-CSRF':settings.csrf},body:JSON.stringify(body)});
     const result = await r.json();
     if (!r.ok) {
-      if (result.code === 'invalid_csrf') configPromise = null;
+      if (result.code === 'invalid_csrf') {
+        configPromise = null;
+        // A stale cached CSRF token (e.g. after sign-out rotated it) shouldn't surface as
+        // a user-facing error on the first click — fetch a fresh one and retry silently, once.
+        if (retry) return post(action,body,false);
+      }
       const error = new Error(result.error || 'Please try again.'); error.code = result.code; throw error;
     }
     return result;
