@@ -1,0 +1,331 @@
+<title>Minzo AI Account Deletion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #F5F2EA;
+    --paper-raised: #FFFFFF;
+    --ink: #16150F;
+    --ink-soft: #43412f;
+    --muted: #746f5c;
+    --border: #DAD4C2;
+    --violet: #6a37a8;
+    --violet-soft: #f1e9fb;
+    --focus: #6a37a8;
+
+    --font-display: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+
+    --measure: 40em;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16150F;
+      --paper-raised: #1e1c14;
+      --ink: #f3f0e6;
+      --ink-soft: #d6d1bf;
+      --muted: #9a927b;
+      --border: #37341f;
+      --violet: #b993ec;
+      --violet-soft: #2a2038;
+      --focus: #b993ec;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #16150F;
+    --paper-raised: #1e1c14;
+    --ink: #f3f0e6;
+    --ink-soft: #d6d1bf;
+    --muted: #9a927b;
+    --border: #37341f;
+    --violet: #b993ec;
+    --violet-soft: #2a2038;
+    --focus: #b993ec;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--violet); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--violet);
+    color: #fff;
+    padding: 0.6em 1em;
+    z-index: 100;
+    border-radius: 0 0 8px 0;
+  }
+  .skip-link:focus { left: 0; }
+
+  .shell {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 4vw, 2.5rem) 5rem;
+  }
+
+  header.doc-head {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--violet);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--violet);
+    display: inline-block;
+  }
+
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    margin: 0.5rem 0 0.75rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .doc-meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  main.doc-body {
+    max-width: var(--measure);
+  }
+
+  main.doc-body > p.lede {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+  }
+
+  section.clause {
+    padding-top: 2.5rem;
+    margin-top: 2.5rem;
+    border-top: 1px solid var(--border);
+    scroll-margin-top: 1.5rem;
+  }
+  section.clause:first-of-type {
+    border-top: none;
+    margin-top: 2rem;
+    padding-top: 0;
+  }
+
+  .clause-num {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0.2rem 0 1rem;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--ink);
+  }
+
+  p { margin: 0 0 1rem; }
+  ol.steps, ul.clause-list {
+    margin: 0 0 1rem;
+    padding-left: 1.3rem;
+  }
+  ol.steps li, ul.clause-list li { margin-bottom: 0.6rem; }
+
+  .callout {
+    background: var(--violet-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+  }
+  .callout strong { color: var(--violet); }
+
+  .request-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem 1.5rem;
+    margin: 1.25rem 0 1.75rem;
+  }
+  .request-card .org {
+    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    margin-bottom: 0.3rem;
+  }
+  .request-card a.email {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+  }
+  .request-card .hint {
+    margin-top: 0.6rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  table.retain {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.93rem;
+  }
+  table.retain th, table.retain td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  table.retain th {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  footer.doc-foot {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  @media print {
+    .skip-link { display: none; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+
+<a class="skip-link" href="#main-content">Skip to instructions</a>
+
+<div class="shell">
+  <header class="doc-head">
+    <span class="eyebrow">Account Deletion</span>
+    <h1 class="title">Delete your Minzo AI account</h1>
+    <div class="doc-meta">
+      <span>Effective date: <strong>30 September 2026</strong></span>
+      <span>Published by <strong>RD SwapSo Pvt. Ltd.</strong></span>
+    </div>
+  </header>
+
+  <main class="doc-body" id="main-content">
+    <p class="lede">You can request deletion of your Minzo AI account and all associated data at any time, whether or not you still have the app installed.</p>
+
+    <section class="clause" id="how">
+      <span class="clause-num">01</span>
+      <h2>How to request deletion</h2>
+      <p>Send a deletion request by email from the address associated with your account:</p>
+
+      <div class="request-card">
+        <div class="org">RD SwapSo Pvt. Ltd.</div>
+        <a class="email" href="mailto:awatadeayush2524@gmail.com?subject=Delete%20my%20Minzo%20AI%20account">awatadeayush2524@gmail.com</a>
+        <div class="hint">Subject line: "Delete my Minzo AI account" — include the username or email your account is registered under.</div>
+      </div>
+
+      <ol class="steps">
+        <li>Email us from the address on your account, stating that you want your account deleted.</li>
+        <li>We verify the request is coming from the account owner.</li>
+        <li>We delete your account and data, and confirm by email once it's done.</li>
+      </ol>
+
+      <div class="callout">
+        <strong>Turnaround:</strong> requests are completed within 30 days, consistent with our <a href="./privacy-policy.html">Privacy Policy</a>.
+      </div>
+    </section>
+
+    <section class="clause" id="what">
+      <span class="clause-num">02</span>
+      <h2>What gets deleted</h2>
+      <p>Deleting your account permanently removes:</p>
+      <ul class="clause-list">
+        <li>Your login credentials and authentication record.</li>
+        <li>Your profile — username, display name, avatar, and onboarding answers.</li>
+        <li>Your learning history — completed lessons, exercise answers, streaks, and per-concept progress.</li>
+        <li>Any prompts you wrote for graded exercises.</li>
+      </ul>
+      <p>This action cannot be undone.</p>
+    </section>
+
+    <section class="clause" id="retain">
+      <span class="clause-num">03</span>
+      <h2>What we may retain, and for how long</h2>
+      <p>A small amount of data may be kept briefly after deletion, strictly where required:</p>
+      <table class="retain">
+        <thead>
+          <tr><th>Data</th><th>Retained for</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Server logs referencing your account</td><td>Up to 30 days</td><td>Security, abuse prevention</td></tr>
+          <tr><td>Records of the deletion request itself</td><td>Up to 12 months</td><td>Legal/compliance record-keeping</td></tr>
+        </tbody>
+      </table>
+      <p>No profile, learning-activity, or prompt content is retained past the deletion date. See our <a href="./privacy-policy.html">Privacy Policy</a> for the full data-retention policy.</p>
+    </section>
+
+    <section class="clause" id="partial">
+      <span class="clause-num">04</span>
+      <h2>Deleting specific data instead of your whole account</h2>
+      <p>If you'd rather keep your account but have specific data removed (for example, a single prompt submission), mention that instead in your email to the address above and we'll action just that request.</p>
+    </section>
+
+    <footer class="doc-foot">
+      <span>RD SwapSo Pvt. Ltd. · Minzo AI</span>
+      <span>Effective 30 September 2026</span>
+    </footer>
+  </main>
+</div>
