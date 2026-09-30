@@ -1,0 +1,478 @@
+<title>Minzo AI Privacy Policy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #F5F2EA;
+    --paper-raised: #FFFFFF;
+    --ink: #16150F;
+    --ink-soft: #43412f;
+    --muted: #746f5c;
+    --border: #DAD4C2;
+    --violet: #6a37a8;
+    --violet-soft: #f1e9fb;
+    --focus: #6a37a8;
+
+    --font-display: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+
+    --measure: 40em;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16150F;
+      --paper-raised: #1e1c14;
+      --ink: #f3f0e6;
+      --ink-soft: #d6d1bf;
+      --muted: #9a927b;
+      --border: #37341f;
+      --violet: #b993ec;
+      --violet-soft: #2a2038;
+      --focus: #b993ec;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #16150F;
+    --paper-raised: #1e1c14;
+    --ink: #f3f0e6;
+    --ink-soft: #d6d1bf;
+    --muted: #9a927b;
+    --border: #37341f;
+    --violet: #b993ec;
+    --violet-soft: #2a2038;
+    --focus: #b993ec;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--violet); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--violet);
+    color: #fff;
+    padding: 0.6em 1em;
+    z-index: 100;
+    border-radius: 0 0 8px 0;
+  }
+  .skip-link:focus { left: 0; }
+
+  .shell {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 4vw, 2.5rem) 5rem;
+  }
+
+  header.doc-head {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--violet);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--violet);
+    display: inline-block;
+  }
+
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    margin: 0.5rem 0 0.75rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .doc-meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; order: 2; margin-top: 3rem; }
+  }
+
+  nav.toc {
+    position: sticky;
+    top: clamp(1rem, 3vw, 2.5rem);
+    font-size: 0.9rem;
+  }
+  nav.toc .toc-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    border-left: 1px solid var(--border);
+  }
+  nav.toc a {
+    display: block;
+    padding: 0.4rem 0 0.4rem 0.9rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--violet); }
+  nav.toc a.active {
+    color: var(--violet);
+    font-weight: 600;
+    border-left-color: var(--violet);
+  }
+
+  main.doc-body {
+    max-width: var(--measure);
+  }
+
+  main.doc-body > p.lede {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+  }
+
+  section.clause {
+    padding-top: 2.75rem;
+    margin-top: 2.75rem;
+    border-top: 1px solid var(--border);
+    scroll-margin-top: 1.5rem;
+  }
+  section.clause:first-of-type {
+    border-top: none;
+    margin-top: 2rem;
+    padding-top: 0;
+  }
+
+  .clause-num {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0.2rem 0 1rem;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--ink);
+  }
+
+  p { margin: 0 0 1rem; }
+  ul.clause-list {
+    margin: 0 0 1rem;
+    padding-left: 1.3rem;
+  }
+  ul.clause-list li { margin-bottom: 0.55rem; }
+
+  .provider-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 1rem;
+  }
+  .provider-card h3 { margin-top: 0; display: flex; align-items: baseline; gap: 0.5em; }
+  .provider-card h3 .tag {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--violet);
+    background: var(--violet-soft);
+    padding: 0.15em 0.55em;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .provider-card p:last-child { margin-bottom: 0; }
+
+  .callout {
+    background: var(--violet-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+  }
+  .callout strong { color: var(--violet); }
+
+  .contact-block {
+    margin-top: 0.5rem;
+  }
+  .contact-block .org {
+    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+  }
+  .contact-block a { font-family: var(--font-mono); font-size: 0.95rem; }
+
+  footer.doc-foot {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  @media print {
+    nav.toc, .skip-link { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    body { background: #fff; color: #000; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<a class="skip-link" href="#main-content">Skip to policy text</a>
+
+<div class="shell">
+  <header class="doc-head">
+    <span class="eyebrow">Privacy Policy</span>
+    <h1 class="title">Minzo AI</h1>
+    <div class="doc-meta">
+      <span>Effective date: <strong>11 September 2026</strong></span>
+      <span>Published by <strong>RD SwapSo Pvt. Ltd.</strong></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-label">On this page</p>
+      <ol id="toc-list">
+        <li><a href="#collect">1. Information we collect</a></li>
+        <li><a href="#use">2. How we use it</a></li>
+        <li><a href="#share">3. Who we share it with</a></li>
+        <li><a href="#retention">4. Data retention</a></li>
+        <li><a href="#children">5. Children's privacy</a></li>
+        <li><a href="#rights">6. Your rights &amp; deletion</a></li>
+        <li><a href="#security">7. Security</a></li>
+        <li><a href="#transfers">8. International transfers</a></li>
+        <li><a href="#changes">9. Changes to this policy</a></li>
+        <li><a href="#contact">10. Contact us</a></li>
+      </ol>
+    </nav>
+
+    <main class="doc-body" id="main-content">
+      <p class="lede">RD SwapSo Pvt. Ltd. ("we," "us," or "our") operates Minzo AI, a mobile application that teaches people to work well with AI tools. This policy explains what information we collect through the app, why we collect it, who we share it with, and the choices you have.</p>
+      <p>By creating an account or using Minzo AI, you agree to the collection and use of information in accordance with this policy.</p>
+
+      <section class="clause" id="collect">
+        <span class="clause-num">01</span>
+        <h2>Information we collect</h2>
+
+        <h3>Account information</h3>
+        <p>When you create an account, we collect:</p>
+        <ul class="clause-list">
+          <li>Email address and a securely hashed password, if you sign up directly; or</li>
+          <li>Your name, email address, and profile photo from Google or GitHub, if you choose to sign in with one of those providers instead. We only receive what that provider's consent screen discloses to you at sign-in.</li>
+        </ul>
+        <p>Authentication is handled by our backend provider, Supabase — we never see or store your raw password.</p>
+
+        <h3>Profile information</h3>
+        <p>You choose a username, a display name, and (optionally) an avatar. Your username, display name, and avatar are visible to other users of the app.</p>
+
+        <h3>Onboarding information</h3>
+        <p>During first-time setup, we ask for:</p>
+        <ul class="clause-list">
+          <li>Your college/institution and country — both optional, and skippable.</li>
+          <li>A self-reported answer to "how do you currently use AI" (e.g. conversation, tool, or system), used only to personalize which content is shown first.</li>
+        </ul>
+
+        <h3>Learning activity and content you create</h3>
+        <p>As you use the app, we record which lessons and exercises you've completed, your answers, your streaks, and a per-concept "strength" score used to schedule spaced-repetition review. For exercises that ask you to write a real prompt, the text you write is stored and sent to our AI grading provider (see section 3) to be scored.</p>
+
+        <h3>What we do not collect</h3>
+        <p>We do not currently use any third-party analytics, advertising, or tracking SDKs. We do not access your contacts, camera, microphone, or precise location, and we do not collect advertising identifiers.</p>
+      </section>
+
+      <section class="clause" id="use">
+        <span class="clause-num">02</span>
+        <h2>How we use your information</h2>
+        <p>We use the information above to:</p>
+        <ul class="clause-list">
+          <li>Create and maintain your account and learning progress.</li>
+          <li>Personalize the order and difficulty of lessons shown to you.</li>
+          <li>Grade the "write a prompt" exercises using an AI service (see section 3).</li>
+          <li>Maintain streaks and spaced-repetition reminders.</li>
+          <li>Detect abuse and enforce rate limits on graded submissions.</li>
+          <li>Respond to support requests you send us.</li>
+        </ul>
+      </section>
+
+      <section class="clause" id="share">
+        <span class="clause-num">03</span>
+        <h2>Third parties we share data with</h2>
+        <p>Minzo AI relies on the following service providers to operate. Each processes only the data necessary for its function, under its own privacy terms:</p>
+
+        <div class="provider-card">
+          <h3>Supabase <span class="tag">Infrastructure</span></h3>
+          <p>Stores your account, profile, and learning-progress data, and handles sign-in. Supabase's own privacy policy governs its infrastructure-level processing.</p>
+        </div>
+
+        <div class="provider-card">
+          <h3>OpenAI <span class="tag">Grading</span></h3>
+          <p>When you submit a "write a prompt" exercise, that text is sent to OpenAI's API to be scored and to generate feedback. No other exercise types are sent to OpenAI.</p>
+        </div>
+
+        <div class="provider-card">
+          <h3>Google / GitHub <span class="tag">Optional sign-in</span></h3>
+          <p>If you choose to sign in with Google or GitHub, those providers share the profile information you approve at their consent screen (typically name, email, and profile photo).</p>
+        </div>
+
+        <div class="provider-card">
+          <h3>RevenueCat <span class="tag">In-app purchases</span></h3>
+          <p>The app includes in-app purchase infrastructure for an optional "Pro" tier. As of this policy's effective date, no purchases are being processed and no payment information is collected — this section will be updated if and when that changes.</p>
+        </div>
+
+        <p>We do not sell your personal information to anyone, for any purpose.</p>
+      </section>
+
+      <section class="clause" id="retention">
+        <span class="clause-num">04</span>
+        <h2>Data retention</h2>
+        <p>We retain your account and learning data for as long as your account is active. If you request deletion (see section 6), we delete your profile, learning history, and exercise submissions within a reasonable period, except where we are required to retain limited records for legal or security purposes.</p>
+      </section>
+
+      <section class="clause" id="children">
+        <span class="clause-num">05</span>
+        <h2>Children's privacy</h2>
+        <p>Minzo AI is not directed at children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, contact us at <a href="mailto:awatadeayush2524@gmail.com">awatadeayush2524@gmail.com</a> and we will delete it.</p>
+      </section>
+
+      <section class="clause" id="rights">
+        <span class="clause-num">06</span>
+        <h2>Your rights and account deletion</h2>
+        <p>You may request to access, correct, or delete your personal data at any time by emailing <a href="mailto:awatadeayush2524@gmail.com">awatadeayush2524@gmail.com</a> from the address associated with your account. We will verify your request and act on it within 30 days. Deleting your account permanently removes your profile, learning progress, and exercise submissions, and cannot be undone.</p>
+        <p>Depending on where you live, you may have additional rights under laws such as the GDPR (EEA/UK) or state privacy laws (e.g. CCPA) — including the right to data portability and the right to object to certain processing. Contact <a href="mailto:awatadeayush2524@gmail.com">awatadeayush2524@gmail.com</a> to exercise these rights.</p>
+      </section>
+
+      <section class="clause" id="security">
+        <span class="clause-num">07</span>
+        <h2>Security</h2>
+        <p>We use industry-standard safeguards to protect your data, including encrypted connections (HTTPS/TLS) between the app and our servers, and database-level access controls that ensure your data is only readable by you and, where applicable, other users viewing your public profile. No method of transmission or storage is 100% secure, and we cannot guarantee absolute security.</p>
+      </section>
+
+      <section class="clause" id="transfers">
+        <span class="clause-num">08</span>
+        <h2>International data transfers</h2>
+        <p>Our service providers may process and store data in countries other than your own. By using the app, you consent to your information being transferred to and processed in those countries, which may have different data protection laws than your home country.</p>
+      </section>
+
+      <section class="clause" id="changes">
+        <span class="clause-num">09</span>
+        <h2>Changes to this policy</h2>
+        <p>We may update this policy from time to time. If we make material changes, we will notify you through the app or by email before the changes take effect. The "Effective date" at the top of this document reflects the most recent revision.</p>
+      </section>
+
+      <section class="clause" id="contact">
+        <span class="clause-num">10</span>
+        <h2>Contact us</h2>
+        <p>If you have questions about this policy or how your data is handled, contact us at:</p>
+        <div class="contact-block">
+          <div class="org">RD SwapSo Pvt. Ltd.</div>
+          <a href="mailto:awatadeayush2524@gmail.com">awatadeayush2524@gmail.com</a>
+        </div>
+      </section>
+
+      <footer class="doc-foot">
+        <span>RD SwapSo Pvt. Ltd. · Minzo AI</span>
+        <span>Effective 11 September 2026</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+    var sections = links.map(function (a) {
+      return document.querySelector(a.getAttribute('href'));
+    });
+
+    function setActive() {
+      var pos = window.scrollY + 120;
+      var current = 0;
+      sections.forEach(function (s, i) {
+        if (s && s.offsetTop <= pos) current = i;
+      });
+      links.forEach(function (a, i) {
+        a.classList.toggle('active', i === current);
+      });
+    }
+
+    document.addEventListener('scroll', setActive, { passive: true });
+    window.addEventListener('resize', setActive);
+    setActive();
+  })();
+</script>
