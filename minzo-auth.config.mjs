@@ -24,7 +24,7 @@ export function withMinzoAuth(config = {}) {
     },
     async headers() {
       // Every page here is same-origin only: no external scripts, styles, fonts or XHR targets.
-      const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
+      const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests";
       return [
         ...(oldHeaders ? await oldHeaders() : []),
         {source:'/signin(.*)',headers:[{key:'Cache-Control',value:'no-store'}]},
@@ -34,6 +34,10 @@ export function withMinzoAuth(config = {}) {
           {key:'X-Content-Type-Options',value:'nosniff'},
           {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'},
           {key:'X-Frame-Options',value:'DENY'},
+          // Tells browsers to reach this site over HTTPS only, so a plain http:// link or a
+          // typed domain never spends a hop on an insecure connection after the first visit.
+          {key:'Strict-Transport-Security',value:'max-age=63072000; includeSubDomains'},
+          {key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'},
           {key:'Content-Security-Policy',value:csp}
         ]},
         {source:'/style.css',headers:[{key:'Cache-Control',value:'public, max-age=300, stale-while-revalidate=86400'}]},
