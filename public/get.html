@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Get Minzo AI</title>
+<meta name="description" content="Learn to use AI well, five minutes a day. Get Minzo AI on the App Store or Google Play.">
+<meta name="robots" content="noindex">
+<!--
+  Partner share link: https://www.minzoai.com/get.html?c=<code>
+  One link for both platforms (see MinzoAI/lib/attribution.ts and
+  MinzoAI/supabase/migration_link_tracking_ios.sql):
+    Android -> forwards to Google Play with referrer=minzo_ref%3D<code>.
+    iPhone  -> on tap, copies this link (the app reads it back on first launch)
+               and opens the App Store campaign link (ct=<code>), so App Store
+               Connect counts the install as well.
+  Host at exactly this path on www.minzoai.com, next to privacy-policy.html.
+-->
+<style>
+  :root {
+    --bg: #ffffff; --text: #1c1c1c; --muted: #5f5f5f; --brand: #7c3aed; --brand-ink: #ffffff;
+    --card: #f5f2fb; --border: #e6e0f3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1c; --text: #ffffff; --muted: #bbbbbb; --brand: #ad87ed; --brand-ink: #1c1c1c; --card: #262626; --border: #3a3937; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  main { width: 100%; max-width: 400px; text-align: center; }
+  .logo { width: 88px; height: 88px; border-radius: 22px; }
+  h1 { font-size: 28px; margin: 20px 0 8px; }
+  p { color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
+  .btn {
+    display: block; width: 100%; padding: 16px; border-radius: 999px; border: 0;
+    background: var(--brand); color: var(--brand-ink); font-size: 17px; font-weight: 600;
+    text-decoration: none; cursor: pointer; margin-bottom: 12px; font-family: inherit;
+  }
+  .btn.secondary { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+  .note {
+    font-size: 14px; color: var(--muted); background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; margin-top: 8px; line-height: 1.45;
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="/logo/minzo-icon.png" alt="" onerror="this.hidden=true">
+  <h1>Minzo AI</h1>
+  <p>Learn to use AI well, five minutes a day.</p>
+
+  <div id="ios" hidden>
+    <button class="btn" id="iosGet" type="button">Get it on the App Store</button>
+    <div class="note">When you first open Minzo AI, it may ask to <strong>paste from Safari</strong>. Tap <strong>Allow</strong> so we know who sent you. That’s all it reads.</div>
+  </div>
+
+  <div id="other" hidden>
+    <a class="btn" id="appStore" href="#">Download on the App Store</a>
+    <a class="btn secondary" id="playStore" href="#">Get it on Google Play</a>
+  </div>
+</main>
+<script>
+(function () {
+  // App Store Connect -> App Analytics -> Campaign link generator, the pt= value.
+  // Without it the App Store link still works but App Store Connect cannot
+  // attribute the install to the campaign.
+  var PROVIDER_TOKEN = '';
+  var APP_STORE_ID = '6818757103';
+  var PLAY_ID = 'com.minzoai.mobile';
+
+  var raw = new URLSearchParams(location.search).get('c') || '';
+  var code = /^[a-z0-9_-]{3,40}$/i.test(raw) ? raw.toLowerCase() : '';
+
+  var shareLink = 'https://www.minzoai.com/get.html' + (code ? '?c=' + code : '');
+  var playUrl = 'https://play.google.com/store/apps/details?id=' + PLAY_ID +
+    (code ? '&referrer=' + encodeURIComponent('minzo_ref=' + code) : '');
+  var appStoreUrl = 'https://apps.apple.com/app/apple-store/id' + APP_STORE_ID +
+    '?mt=8' + (PROVIDER_TOKEN ? '&pt=' + PROVIDER_TOKEN : '') + (code ? '&ct=' + code : '');
+
+  var ua = navigator.userAgent || '';
+  var isAndroid = /android/i.test(ua);
+  // iPadOS reports itself as a Mac; touch support tells them apart.
+  var isIOS = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+
+  if (isAndroid) {
+    location.replace(playUrl);
+    return;
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () { legacyCopy(text); });
+    }
+    legacyCopy(text);
+    return Promise.resolve();
+  }
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  if (isIOS) {
+    document.getElementById('ios').hidden = false;
+    document.getElementById('iosGet').addEventListener('click', function () {
+      // Safari only allows clipboard writes inside a tap, hence the button.
+      var go = function () { location.href = appStoreUrl; };
+      if (!code) { go(); return; }
+      copy(shareLink).then(go, go);
+    });
+    return;
+  }
+
+  document.getElementById('other').hidden = false;
+  document.getElementById('appStore').href = appStoreUrl;
+  document.getElementById('playStore').href = playUrl;
+})();
+</script>
+</body>
+</html>
